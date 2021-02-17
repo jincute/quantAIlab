@@ -1,13 +1,26 @@
 import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
+
+import time,datetime
+import telepot
+from telepot.loop import MessageLoop
 import pdb
+
+# Max retries exceeded with url: /bot1690062356:AAFFxkzkjW4dPOBKSuxq8BY5Bwepzp2zDao/sendMessage (Caused by SSLError(SSLError("bad handshake: Error([('SSL routines', 'tls_process_server_certificate', 'certificate verify failed')])")))
+# pip3 install urllib3==1.24.1, downgrade urllib3 1.24.1
+now = datetime.datetime.now()
+telegram_bot = telepot.Bot('1690062356:AAFFxkzkjW4dPOBKSuxq8BY5Bwepzp2zDao')
+
 pd.options.mode.chained_assignment = None
 
+
+
 # get the S&P 500 symbol from wikipedia page
-tickers = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+# tickers = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+tickers = pd.read_csv('data/df_rsi.csv')
 tickers = tickers.Symbol.to_list()
-tickers = [i.replace('.','-') for i in tickers] # BRK.B -> BRK-B
+# tickers = [i.replace('.','-') for i in tickers] # BRK.B -> BRK-B
 
 def RSIcalc(asset):
     df = yf.download(asset,start='2011-01-01')
@@ -53,15 +66,28 @@ def getSignals(df):
                     Selling_dates.append(df.iloc[i+j+1].name)
     return Buying_dates, Selling_dates
 
+def alertBuySignal(df,stock):
+    if 'No' in df.tail(1).Buy.values:
+        test_text = stock + ': Not buy'
+        print(test_text)
+        # telegram_bot.sendMessage('351230752',test_text) #chat_id
+
+for i in range(len(tickers)):
+    frame = RSIcalc(tickers[i])
+    alertBuySignal(frame,tickers[i])
+
+'''
 # main part
 matrixsignals = []
 matrixprofits = []
 
 for i in range(len(tickers)):
-    # print(f'stock {tickers[i]}')
     frame = RSIcalc(tickers[i])
     buy, sell = getSignals(frame)
     Profits = (frame.loc[sell].Open.values - frame.loc[buy].Open.values)/frame.loc[buy].Open.values
+    wins = [i for i in Profits if i > 0]
+    win_rate = len(wins)/len(Profits)
+    print(f'stock [{tickers[i]}] win rate is: {win_rate}')
     matrixsignals.append(buy)
     matrixprofits.append(Profits)
 
@@ -74,4 +100,5 @@ for i in matrixprofits:
 
 wins = [i for i in allprofit if i > 0]
 win_rate = len(wins)/len(allprofit)  # calc win rate
-print('win rate: ', win_rate)
+print('\n Total win rate: ', win_rate)
+'''
