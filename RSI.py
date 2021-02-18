@@ -70,7 +70,7 @@ def alertBuySignal(df,stock):
     if 'No' in df.tail(1).Buy.values:
         test_text = stock + ': Not buy'
         print(test_text)
-        # telegram_bot.sendMessage('351230752',test_text) #chat_id
+        telegram_bot.sendMessage('351230752','Today scanned Done! No buy signal!') #chat_id
     elif 'Yes' in df.tail(1).Buy.values:
         test_text = 'HIT!!! ' + stock + ': BUY next day!'
         telegram_bot.sendMessage('351230752',test_text)
